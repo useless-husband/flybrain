@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>果蠅大腦模擬</title>
+    <link rel="stylesheet" type="text/css" href="./css/main.css?v=21">
+</head>
+
+<body>
+    <div id="toolbar">
+        <div class="toolbar-left">
+            <button class="tool-btn sidebar-toggle" id="sidebarToggle" aria-label="開關側邊欄">&#9776;</button>
+            <button class="tool-btn active" data-tool="feed">餵食</button>
+            <button class="tool-btn" data-tool="touch">觸碰</button>
+            <button class="tool-btn" data-tool="air">吹風</button>
+            <button class="tool-btn" data-tool="light" id="lightBtn">光線：明亮</button>
+            <button class="tool-btn" data-tool="temp" id="tempBtn">溫度：適中</button>
+            <button class="tool-btn" id="brain3dBtn" aria-pressed="false">3D 大腦</button>
+            <button class="tool-btn" id="activityToggle">動態紀錄</button>
+            <button class="tool-btn" id="learnBtn">教學導覽</button>
+            <button class="tool-btn" id="trainingBtn">訓練場</button>
+            <button class="tool-btn" id="helpBtn">?</button>
+            <button class="tool-btn" id="liteBtn">省電模式</button>
+        </div>
+        <div class="toolbar-right">
+            <span id="claudeStatus" class="claude-status" style="display:none;">
+                <span class="claude-dot"></span>
+                <span class="claude-status-text">AI</span>
+            </span>
+            <span class="toolbar-title">果蠅大腦模擬</span>
+            <span id="scaleIndicator" class="scale-indicator" style="display:none;"></span>
+            <img id="centerButton" src="./svg/center.svg" height="24" class="noselect toolbar-icon">
+            <img id="clearButton" src="./svg/clear.svg" height="24" class="noselect toolbar-icon">
+            <a href="https://github.com/snedea/flybrain">
+                <img id="githubButton" src="./svg/github.svg" class="noselect">
+            </a>
+        </div>
+    </div>
+    <div id="helpOverlay" class="help-overlay" style="display:none;">
+        <div class="help-overlay-header">
+            <span>操作說明</span>
+            <button class="help-close-btn" id="helpCloseBtn">&times;</button>
+        </div>
+        <div class="help-item"><strong>餵食</strong> — 在畫面上點一下放食物。蒼蠅餓的時候會自己找過去吃掉。</div>
+        <div class="help-item"><strong>觸碰</strong> — 點蒼蠅身上去碰牠。碰哪裡差很多：頭、胸、腹、腳會引發不同部位的理毛動作。4 秒內連點 3 下以上，會看到牠的痛覺反應。</div>
+        <div class="help-item"><strong>吹風</strong> — 在蒼蠅附近按住拖曳，就能對牠吹風。拖得愈遠，風愈強。</div>
+        <div class="help-item"><strong>光線</strong> — 按一下會在「明亮 → 昏暗 → 全黑」之間切換。蒼蠅有趨光性，會往亮的地方靠。</div>
+        <div class="help-item"><strong>溫度</strong> — 按一下會在「適中 → 溫暖 → 涼爽」之間切換。變熱牠會變得躁動又愛閃躲；變涼則會比較想到處探索。</div>
+    </div>
+    <div id="left-panel">
+        <div id="connectome-panel">
+            <div class="connectome-header">
+                <span class="connectome-label">神經接線圖</span>
+                <button class="connectome-toggle-btn" id="connectomeToggleBtn" title="切換顯示（V 鍵）">隱藏</button>
+            </div>
+            <div class="connectome-subtitle" id="connectomeSubtitle">正在載入神經接線圖…</div>
+            <div id="nodeHolder" class="connectome-grid"></div>
+            <div id="neuronTooltip" class="neuron-tooltip"></div>
+        </div>
+        <div id="drive-meters">
+            <div class="drive-row">
+                <span class="drive-label">目前狀態</span>
+                <span id="behaviorState" class="behavior-state">發呆</span>
+            </div>
+            <div class="drive-row">
+                <span class="drive-label">飢餓</span>
+                <div class="drive-bar-bg"><div class="drive-bar" id="driveHunger"></div></div>
+            </div>
+            <div class="drive-row">
+                <span class="drive-label">恐懼</span>
+                <div class="drive-bar-bg"><div class="drive-bar" id="driveFear"></div></div>
+            </div>
+            <div class="drive-row">
+                <span class="drive-label">疲勞</span>
+                <div class="drive-bar-bg"><div class="drive-bar" id="driveFatigue"></div></div>
+            </div>
+            <div class="drive-row">
+                <span class="drive-label">好奇</span>
+                <div class="drive-bar-bg"><div class="drive-bar" id="driveCuriosity"></div></div>
+            </div>
+            <div class="drive-row">
+                <span class="drive-label">想理毛</span>
+                <div class="drive-bar-bg"><div class="drive-bar" id="driveGroom"></div></div>
+            </div>
+        </div>
+    </div>
+    <div id="caretaker-sidebar" class="caretaker-sidebar">
+        <div class="caretaker-sidebar-header">
+            <span class="caretaker-sidebar-title">動態紀錄</span>
+            <button class="caretaker-sidebar-close" id="caretaker-sidebar-close">&times;</button>
+        </div>
+        <div class="activity-feed" id="activity-feed-list"></div>
+        <div class="chat-section" id="chat-section">
+            <div class="chat-history" id="chat-history"></div>
+            <div class="chat-input-row">
+                <input type="text" class="chat-input" id="chat-input" placeholder="問問這隻蒼蠅的事…" autocomplete="off" />
+                <button class="chat-send-btn" id="chat-send-btn">送出</button>
+            </div>
+        </div>
+        <div class="analytics-section" id="analytics-section">
+            <div class="analytics-section-header">
+                <span class="analytics-section-title">數據統計</span>
+                <button class="analytics-toggle-btn" id="analytics-toggle">隱藏</button>
+            </div>
+            <div class="analytics-content" id="analytics-content"></div>
+        </div>
+        <div class="calendar-section" id="calendar-section">
+            <div class="calendar-section-header">
+                <span class="calendar-section-title">生活紀錄</span>
+                <button class="calendar-toggle-btn" id="calendar-toggle">隱藏</button>
+            </div>
+            <div class="calendar-content" id="calendar-content"></div>
+        </div>
+    </div>
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    <canvas id='canvas'></canvas>
+    <div id="zoom-controls" class="zoom-controls">
+        <button class="zoom-btn" id="zoomIn">+</button>
+        <button class="zoom-btn" id="zoomOut">&minus;</button>
+    </div>
+    <div id="education-panel" class="education-panel" style="display:none;">
+        <div class="education-panel-header">
+            <span class="education-panel-title">大腦導覽</span>
+            <button class="education-close-btn" id="education-close-btn">&times;</button>
+        </div>
+        <div class="education-content" id="education-content"></div>
+    </div>
+    <div id="brain3d-overlay" style="display:none;"></div>
+    <div id="brain3d-tooltip" style="display:none;"></div>
+    <!-- Three.js v0.128.0 (vendored) -- do NOT upgrade one without the other -->
+    <script src="./js/vendor/three.min.js"></script>
+    <script src="./js/vendor/OrbitControls.js"></script>
+    <script type="text/javascript" src="./js/constants.js?v=21"></script>
+    <script type="text/javascript" src="./js/connectome.js?v=21"></script>
+    <script type="text/javascript" src="./js/brain-worker-bridge.js?v=21"></script>
+    <script type="text/javascript" src="./js/neuro-renderer.js?v=21"></script>
+    <script type="text/javascript" src="./js/fly-logic.js?v=21"></script>
+    <script type="text/javascript" src="./js/brain3d.js?v=21"></script>
+    <script type="text/javascript" src="./js/education.js?v=21"></script>
+    <script type="text/javascript" src="./js/main.js?v=21"></script>
+    <script type="text/javascript" src="./js/caretaker-renderer.js?v=21"></script>
+    <script type="text/javascript" src="./js/caretaker-sidebar.js?v=21"></script>
+    <script type="text/javascript" src="./js/caretaker-analytics.js?v=21"></script>
+    <script type="text/javascript" src="./js/caretaker-calendar.js?v=21"></script>
+    <script type="text/javascript" src="./js/caretaker-bridge.js?v=21"></script>
+    <script type="text/javascript" src="./js/zh-tw.js?v=1"></script>
+    <script type="text/javascript" src="./js/training.js?v=1"></script>
+</body>
+
+</html>

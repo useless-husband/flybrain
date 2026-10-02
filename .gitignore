@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Local backups and logs
+*.bak
+*.bak2
+*.log
+*.db
